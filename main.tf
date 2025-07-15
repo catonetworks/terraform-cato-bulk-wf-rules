@@ -1,8 +1,18 @@
 locals {
-  wf_rules_json = jsondecode(file("${var.wf_rules_json_file_path}"))
-  wf_rules_data = local.wf_rules_json.data.policy.wanFirewall.policy.rules
-  sections_data = local.wf_rules_json.data.policy.wanFirewall.policy.sections
-  rules_data    = local.wf_rules_json.data.policy.wanFirewall.policy.rules_in_sections
+  wf_rules_json          = jsondecode(file("${var.wf_rules_json_file_path}"))
+  wf_rules_data          = local.wf_rules_json.data.policy.wanFirewall.policy.rules
+  sections_data_unsorted = local.wf_rules_json.data.policy.wanFirewall.policy.sections
+  # Create a map with section_index as key to sort sections correctly
+  sections_by_index = {
+    for section in local.sections_data_unsorted :
+    tostring(section.section_index) => section
+  }
+  # Sort sections by section_index to ensure consistent ordering regardless of JSON file order
+  sections_data = [
+    for index in sort(keys(local.sections_by_index)) :
+    local.sections_by_index[index]
+  ]
+  rules_data = local.wf_rules_json.data.policy.wanFirewall.policy.rules_in_sections
 }
 
 resource "cato_wf_section" "sections" {

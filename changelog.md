@@ -9,3 +9,8 @@
 
 ### Features
 - Fixing versions syntax to point to published provider
+
+## 0.0.3 (2025-07-15)
+
+### Features
+- Refactor section data to sort and index by name to support reordering of source json without error
