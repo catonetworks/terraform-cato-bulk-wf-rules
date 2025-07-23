@@ -516,13 +516,13 @@ These example outputs demonstrate various practical applications:
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_cato"></a> [cato](#requirement\_cato) | 0.0.30 |
+| <a name="requirement_cato"></a> [cato](#requirement\_cato) | >= 0.0.35 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_cato"></a> [cato](#provider\_cato) | 0.0.30 |
+| <a name="provider_cato"></a> [cato](#provider\_cato) | >= 0.0.35 |
 
 ## Modules
 
@@ -532,9 +532,9 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [cato_bulk_wf_move_rule.all_wf_rules](https://registry.terraform.io/providers/terraform-providers/cato/0.0.30/docs/resources/bulk_wf_move_rule) | resource |
-| [cato_wf_rule.rules](https://registry.terraform.io/providers/terraform-providers/cato/0.0.30/docs/resources/wf_rule) | resource |
-| [cato_wf_section.sections](https://registry.terraform.io/providers/terraform-providers/cato/0.0.30/docs/resources/wf_section) | resource |
+| [cato_bulk_wf_move_rule.all_wf_rules](https://registry.terraform.io/providers/catonetworks/cato/latest/docs/resources/bulk_wf_move_rule) | resource |
+| [cato_wf_rule.rules](https://registry.terraform.io/providers/catonetworks/cato/latest/docs/resources/wf_rule) | resource |
+| [cato_wf_section.sections](https://registry.terraform.io/providers/catonetworks/cato/latest/docs/resources/wf_section) | resource |
 
 ## Inputs
 

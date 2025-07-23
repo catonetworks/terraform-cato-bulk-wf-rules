@@ -386,20 +386,20 @@ resource "cato_wf_rule" "rules" {
 
 resource "cato_bulk_wf_move_rule" "all_wf_rules" {
   depends_on = [cato_wf_section.sections, cato_wf_rule.rules]
-  rule_data = [
-    for rule_mapping in local.rules_data : {
+  rule_data = {
+    for rule_mapping in local.rules_data : rule_mapping.rule_name => {
       rule_name        = rule_mapping.rule_name
       section_name     = rule_mapping.section_name
       index_in_section = rule_mapping.index_in_section
       id               = cato_wf_rule.rules[rule_mapping.rule_name].rule.id
     }
-  ]
-  section_data = [
-    for section in local.sections_data : {
+  }
+  section_data = {
+    for section in local.sections_data : section.section_name => {
       section_name  = section.section_name
       section_index = section.section_index
       id            = cato_wf_section.sections[section.section_name].id
     }
-  ]
+  }
   section_to_start_after_id = var.section_to_start_after_id != null ? var.section_to_start_after_id : null
 }

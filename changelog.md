@@ -15,3 +15,8 @@
 ### Features
 - Refactor section data to sort and index by name to support reordering of source json without error
 - Updated versions file to reference published provider
+
+## 0.0.5 (2025-07-23)
+
+### Features
+- Fixed state management issues with name to id mapping
