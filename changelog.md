@@ -20,3 +20,9 @@
 
 ### Features
 - Fixed state management issues with name to id mapping
+
+## 0.0.6 (2025-10-28)
+
+### Features
+- Fixed tracking.alert parsing and device_attributes
+

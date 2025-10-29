@@ -41,10 +41,24 @@ resource "cato_wf_rule" "rules" {
       direction = each.value.rule.direction
       # Always include tracking block with defaults
       tracking = {
-        alert = {
-          enabled   = try(each.value.rule.tracking.alert.enabled, false)
-          frequency = try(each.value.rule.tracking.alert.frequency, "IMMEDIATE")
-        }
+        alert = merge(
+          {
+            enabled   = try(each.value.rule.tracking.alert.enabled, false)
+            frequency = try(each.value.rule.tracking.alert.frequency, "IMMEDIATE")
+          },
+          # Only include webhook if it exists and is not empty
+          try(length(each.value.rule.tracking.alert.webhook), 0) > 0 ? {
+            webhook = [for hook in each.value.rule.tracking.alert.webhook : can(hook.name) ? { name = hook.name } : { id = hook.id }]
+          } : {},
+          # Only include mailing_list if it exists and is not empty
+          try(length(each.value.rule.tracking.alert.mailingList), 0) > 0 ? {
+            mailing_list = [for list in each.value.rule.tracking.alert.mailingList : can(list.name) ? { name = list.name } : { id = list.id }]
+          } : {},
+          # Only include subscription_group if it exists and is not empty
+          try(length(each.value.rule.tracking.alert.subscriptionGroup), 0) > 0 ? {
+            subscription_group = [for group in each.value.rule.tracking.alert.subscriptionGroup : can(group.name) ? { name = group.name } : { id = group.id }]
+          } : {}
+        )
         event = {
           enabled = try(each.value.rule.tracking.event.enabled, true)
         }
@@ -76,9 +90,11 @@ resource "cato_wf_rule" "rules" {
       device = [for device in each.value.rule.device : can(device.name) ? { name = device.name } : { id = device.id }]
     } : {},
 
-    # Only include device_attributes if it exists and is not empty
+    # Only include device_attributes if it exists and has non-empty arrays
     length(keys(try(each.value.rule.deviceAttributes, {}))) > 0 ? {
-      device_attributes = each.value.rule.deviceAttributes
+      device_attributes = {
+        for k, v in each.value.rule.deviceAttributes : k => length(v) > 0 ? v : null
+      }
     } : {},
 
     # Dynamic source block - include if source exists (even if empty)
@@ -265,7 +281,9 @@ resource "cato_wf_rule" "rules" {
 
           # Exception deviceAttributes
           length(keys(try(exception.deviceAttributes, {}))) > 0 ? {
-            device_attributes = exception.deviceAttributes
+            device_attributes = {
+              for k, v in exception.deviceAttributes : k => length(v) > 0 ? v : null
+            }
           } : {},
 
           # Exception country
