@@ -26,3 +26,8 @@
 ### Features
 - Fixed tracking.alert parsing and device_attributes
 
+## 0.0.7 (2025-10-28)
+
+### Features
+- Incrementing version to 49
+
