@@ -102,32 +102,20 @@ resource "cato_wf_rule" "rules" {
       source = {
         for k, v in {
           ip = try(length(each.value.rule.source.ip), 0) > 0 ? each.value.rule.source.ip : null
-
           host = try(length(each.value.rule.source.host), 0) > 0 ? [for host in each.value.rule.source.host : can(host.name) ? { name = host.name } : { id = host.id }] : null
-
           site = try(length(each.value.rule.source.site), 0) > 0 ? [for site in each.value.rule.source.site : can(site.name) ? { name = site.name } : { id = site.id }] : null
-
           users_group = try(length(each.value.rule.source.usersGroup), 0) > 0 ? [for group in each.value.rule.source.usersGroup : can(group.name) ? { name = group.name } : { id = group.id }] : null
-
-          subnet = try(length(each.value.rule.source.subnet), 0) > 0 ? each.value.rule.source.subnet : null
-
+          subnet = try(length(each.value.rule.source.subnet), 0) > 0 && can(each.value.rule.source.subnet[0].name) || can(each.value.rule.source.subnet[0].id) ? [for subnet in each.value.rule.source.subnet : can(subnet.name) ? { name = subnet.name } : { id = subnet.id }] : null
           ip_range = try(length(each.value.rule.source.ipRange), 0) > 0 ? [for range in each.value.rule.source.ipRange : {
             from = range.from
             to   = range.to
           }] : null
-
           network_interface = try(length(each.value.rule.source.networkInterface), 0) > 0 ? [for ni in each.value.rule.source.networkInterface : can(ni.name) ? { name = ni.name } : { id = ni.id }] : null
-
           floating_subnet = try(length(each.value.rule.source.floatingSubnet), 0) > 0 ? [for subnet in each.value.rule.source.floatingSubnet : can(subnet.name) ? { name = subnet.name } : { id = subnet.id }] : null
-
           site_network_subnet = try(length(each.value.rule.source.siteNetworkSubnet), 0) > 0 ? [for subnet in each.value.rule.source.siteNetworkSubnet : can(subnet.name) ? { name = subnet.name } : { id = subnet.id }] : null
-
           system_group = try(length(each.value.rule.source.systemGroup), 0) > 0 ? [for group in each.value.rule.source.systemGroup : can(group.name) ? { name = group.name } : { id = group.id }] : null
-
           group = try(length(each.value.rule.source.group), 0) > 0 ? [for group in each.value.rule.source.group : can(group.name) ? { name = group.name } : { id = group.id }] : null
-
           user = try(length(each.value.rule.source.user), 0) > 0 ? [for user in each.value.rule.source.user : can(user.name) ? { name = user.name } : { id = user.id }] : null
-
           global_ip_range = try(length(each.value.rule.source.globalIpRange), 0) > 0 ? [for range in each.value.rule.source.globalIpRange : can(range.name) ? { name = range.name } : { id = range.id }] : null
         } : k => v if v != null
       }
@@ -225,20 +213,14 @@ resource "cato_wf_rule" "rules" {
         for k, v in {
           standard = try(length(each.value.rule.service.standard), 0) > 0 ? [for svc in each.value.rule.service.standard : can(svc.name) ? { name = svc.name } : { id = svc.id }] : null
 
-          custom = try(length(each.value.rule.service.custom), 0) > 0 ? [for svc in each.value.rule.service.custom : merge(
-            {
-              protocol = svc.protocol
-            },
-            try(svc.port, null) != null ? {
-              port = [for p in svc.port : tostring(p)]
-            } : {},
-            try(svc.portRange, null) != null ? {
-              port_range = {
-                from = tostring(svc.portRange.from)
-                to   = tostring(svc.portRange.to)
-              }
-            } : {}
-          )] : null
+          custom = try(length(each.value.rule.service.custom), 0) > 0 ? [for svc in each.value.rule.service.custom : {
+            protocol = svc.protocol
+            port = try(length(svc.port), 0) > 0 ? [for p in svc.port : tostring(p)] : null
+            port_range = try(svc.portRange, null) != null ? {
+              from = tostring(svc.portRange.from)
+              to   = tostring(svc.portRange.to)
+            } : null
+          }] : null
         } : k => v if v != null
       }
     },
@@ -379,20 +361,14 @@ resource "cato_wf_rule" "rules" {
               for k, v in {
                 standard = try(length(exception.service.standard), 0) > 0 ? [for svc in exception.service.standard : can(svc.name) ? { name = svc.name } : { id = svc.id }] : null
 
-                custom = try(length(exception.service.custom), 0) > 0 ? [for svc in exception.service.custom : merge(
-                  {
-                    protocol = svc.protocol
-                  },
-                  try(svc.port, null) != null ? {
-                    port = [for p in svc.port : tostring(p)]
-                  } : {},
-                  try(svc.portRangeCustomService, null) != null ? {
-                    port_range = {
-                      from = tostring(svc.portRangeCustomService.from)
-                      to   = tostring(svc.portRangeCustomService.to)
-                    }
-                  } : {}
-                )] : null
+                custom = try(length(exception.service.custom), 0) > 0 ? [for svc in exception.service.custom : {
+                  protocol = svc.protocol
+                  port = try(length(svc.port), 0) > 0 ? [for p in svc.port : tostring(p)] : null
+                  port_range = try(svc.portRangeCustomService, null) != null ? {
+                    from = tostring(svc.portRangeCustomService.from)
+                    to   = tostring(svc.portRangeCustomService.to)
+                  } : null
+                }] : null
               } : k => v if v != null
             }
           }
