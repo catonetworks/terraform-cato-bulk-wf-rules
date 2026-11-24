@@ -144,10 +144,16 @@ locals {
         device = [for device in entry.rule.device : can(device.name) ? { name = device.name } : { id = device.id }]
       } : {},
 
-      # Only include device_attributes if it exists and has non-empty arrays
-      length(keys(try(entry.rule.deviceAttributes, {}))) > 0 ? {
+      # device_attributes: export keys are camelCase (osVersion) while the
+      # provider uses os_version, so map each one explicitly. Empty lists -> null.
+      length(flatten([for v in values(try(entry.rule.deviceAttributes, {})) : try(v, [])])) > 0 ? {
         device_attributes = {
-          for k, v in entry.rule.deviceAttributes : k => length(v) > 0 ? v : null
+          category     = length(try(entry.rule.deviceAttributes.category, [])) > 0 ? entry.rule.deviceAttributes.category : null
+          manufacturer = length(try(entry.rule.deviceAttributes.manufacturer, [])) > 0 ? entry.rule.deviceAttributes.manufacturer : null
+          model        = length(try(entry.rule.deviceAttributes.model, [])) > 0 ? entry.rule.deviceAttributes.model : null
+          os           = length(try(entry.rule.deviceAttributes.os, [])) > 0 ? entry.rule.deviceAttributes.os : null
+          os_version   = length(try(entry.rule.deviceAttributes.osVersion, [])) > 0 ? entry.rule.deviceAttributes.osVersion : null
+          type         = length(try(entry.rule.deviceAttributes.type, [])) > 0 ? entry.rule.deviceAttributes.type : null
         }
       } : {},
 
@@ -159,7 +165,7 @@ locals {
             host        = try(length(entry.rule.source.host), 0) > 0 ? [for host in entry.rule.source.host : can(host.name) ? { name = host.name } : { id = host.id }] : null
             site        = try(length(entry.rule.source.site), 0) > 0 ? [for site in entry.rule.source.site : can(site.name) ? { name = site.name } : { id = site.id }] : null
             users_group = try(length(entry.rule.source.usersGroup), 0) > 0 ? [for group in entry.rule.source.usersGroup : can(group.name) ? { name = group.name } : { id = group.id }] : null
-            subnet      = try(length(entry.rule.source.subnet), 0) > 0 && can(entry.rule.source.subnet[0].name) || can(entry.rule.source.subnet[0].id) ? [for subnet in entry.rule.source.subnet : can(subnet.name) ? { name = subnet.name } : { id = subnet.id }] : null
+            subnet      = try(length(entry.rule.source.subnet), 0) > 0 ? entry.rule.source.subnet : null
             ip_range = try(length(entry.rule.source.ipRange), 0) > 0 ? [for range in entry.rule.source.ipRange : {
               from = range.from
               to   = range.to
@@ -531,7 +537,6 @@ resource "cato_wf_sub_policy" "sub_policies" {
       device = [for device in each.value.scope.device : can(device.name) ? { name = device.name } : { id = device.id }]
     } : {},
 
-    # Only include device_attributes if it exists and has non-empty arrays
     length(keys(try(each.value.scope.deviceAttributes, {}))) > 0 ? {
       device_attributes = {
         for k, v in each.value.scope.deviceAttributes : k => length(v) > 0 ? v : null
@@ -546,7 +551,7 @@ resource "cato_wf_sub_policy" "sub_policies" {
           host        = try(length(each.value.scope.source.host), 0) > 0 ? [for host in each.value.scope.source.host : can(host.name) ? { name = host.name } : { id = host.id }] : null
           site        = try(length(each.value.scope.source.site), 0) > 0 ? [for site in each.value.scope.source.site : can(site.name) ? { name = site.name } : { id = site.id }] : null
           users_group = try(length(each.value.scope.source.usersGroup), 0) > 0 ? [for group in each.value.scope.source.usersGroup : can(group.name) ? { name = group.name } : { id = group.id }] : null
-          subnet      = try(length(each.value.scope.source.subnet), 0) > 0 && can(each.value.scope.source.subnet[0].name) || can(each.value.scope.source.subnet[0].id) ? [for subnet in each.value.scope.source.subnet : can(subnet.name) ? { name = subnet.name } : { id = subnet.id }] : null
+          subnet      = try(length(each.value.scope.source.subnet), 0) > 0 ? each.value.scope.source.subnet : null
           ip_range = try(length(each.value.scope.source.ipRange), 0) > 0 ? [for range in each.value.scope.source.ipRange : {
             from = range.from
             to   = range.to
